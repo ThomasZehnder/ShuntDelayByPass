@@ -1,5 +1,5 @@
 /*
- Einschalt Versögerung um Shunt Widerstand zu überbrücken.
+ Einschalt Verzögerung um Shunt Widerstand zu überbrücken.
 
  Wird nach 5 Sekunden geschaltet, falls die Spannung über 22V ist, ansonsten nach 10 Sekunden.
 
@@ -26,7 +26,8 @@ Led Ausgang zeig den Status an.
 #define RELAY_PIN PB1
 #define KEY_PIN PB0
 
-#define UBATTTERY_PIN PB3
+#define UBATTTERY_PIN PB4
+#define UREFERNCE_PIN PB3
 
 
 // the setup function runs once when you press reset or power the board
@@ -36,11 +37,25 @@ void setup() {
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);  // switch relais off, shunt activ
   pinMode(KEY_PIN, INPUT_PULLUP);
-  analogReference(DEFAULT);  // Only option on ATtiny13 == 1024 = VCC
+  analogReference(0);  // Only option on ATtiny13 == 1024 = VCC
 }
 
 int16_t pulsrateHigh = 200;
 int16_t pulsrateLow = 200;
+
+// UBAT > UREF (POTI)
+bool fUbatOk(void) {
+  analogRead((analog_pin_t)UBATTTERY_PIN); // dummy read
+  delay(5);                   // stabilisieren
+  int vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
+
+  analogRead((analog_pin_t)UREFERNCE_PIN); // dummy read
+  delay(5);                   // stabilisieren
+  int vRef = analogRead((analog_pin_t)UREFERNCE_PIN);
+
+  return (vBat > vRef);
+}
+
 
 byte state = 0;
 unsigned long resetTime = 0;
@@ -58,13 +73,8 @@ void loop() {
   }
 
   if (state == 0) {
-    pulsrateHigh = 200;
-    pulsrateLow = 200;
-    // UBAT > 22V
-    int ubat = analogRead((analog_pin_t)UBATTTERY_PIN);
-    if (ubat > 750) {
-      state = 2;
-    }
+    pulsrateHigh = 250;
+    pulsrateLow = 250;
     // Wait Time
     if (now - resetTime > 5000) {
       state = 1;
@@ -72,27 +82,27 @@ void loop() {
   } else if (state == 1) {
     pulsrateHigh = 100;
     pulsrateLow = 100;
-    // UBAT > 22V
-    int ubat = analogRead((analog_pin_t)UBATTTERY_PIN);
-    if (ubat > 750) {
-      state = 2;
-    }
-    // Wait Time
-    if (now - resetTime > 10000) {
+    // UBAT > UREF (POTI)
+    if (fUbatOk()) {
       state = 3;
     }
-  } else if (state == 2) {
-    digitalWrite(RELAY_PIN, HIGH);  // switch relais on, shunt is forced
-    pulsrateHigh = 200;
-    pulsrateLow = 500;
     // Wait Time
-    if (now - resetTime > 10000) {
+    if (now - resetTime > 20000) {
       state = 3;
     }
+
   } else {
+    // UBAT > UREF (POTI)
+    // UBAT > UREF (POTI)
+    if (fUbatOk()) {
+      pulsrateHigh = 1950;
+      pulsrateLow = 50;
+    } else {
+      pulsrateHigh = 450;
+      pulsrateLow = 50;
+    }
+
     digitalWrite(RELAY_PIN, HIGH);  // switch relais on, shunt is forced
-    pulsrateHigh = 200;
-    pulsrateLow = 2000;
   }
 
   //blink led

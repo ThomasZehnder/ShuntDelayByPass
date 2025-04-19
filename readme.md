@@ -1,39 +1,50 @@
+# Funktionsbeschreibung
+ Einschalt Verzögerung um den Shunt Widerstand von 5Ω zu überbrücken.
+ Der Shunt begrenzt den Strom auf ca. 5A
+
+ ## Ablauf
+ * Nache dem Einschalten wird 5 Sekunden geladen. --> langsam blinken 
+ * Danach wird 15 Sekunden lang überprüft, ob die Spannund erreicht wurde. Falls ja, wird der Schunt überbrückt, das Relais zieht an. --> schnelles blinken
+ * Falls nach 15 Sekunden die Spannung nicht erreicht wurde, wird das Relais auch geschaltet. --> Puls mit langer Pause (2s)
+
+
 # 🧷 ATtiny13 Pinbelegung
 
 | Pin Nr. | AVR Pin | Deine Belegung      | Funktion                                       |
 |--------:|:--------|:--------------------|:-----------------------------------------------|
-| 1       | PB5     | Reset (Standard)    | Standardmäßig Reset,          |
-| 2       | PB3     | `UBATTTERY_PIN`     | Analog Input (ADC3) – Batteriespannung messen |                  |
-| 3       | PB4     | — (unbenutzt)       | evtl zweiter Analog Input 2       | PB3     | `KEY_PIN`           | Digital Input                 |
-| 4       | GND     | —                   | Masse                                          |
+| 1       | PB5     | Reset (Standard)    | Standardmäßig Reset                            |
+| 2       | PB3     | `UREFERNCE_PIN`     | Analog Input (ADC3) – Referenz Spannung  (POTI)| 
+| 3       | PB4     | `UBATTTERY_PIN`     | Analog Input (ADC2) – Batteriespannung messen  |            
+| 4       | GND     | -                   | Masse                                          |
 | 5       | PB0     | `KEY_PIN`           | Digital Input (Taster) optional nur für Tests schaltet PullDown auf Null. |
-| 6       | PB1     | `RELAY_PIN`         | Digital Output (Relais)| 
-| 7       | PB2     | `LED_PIN`           | Digital Output (LED) --> schaltet auf Null                    |
-| 8       | Vcc     | —                   | Betriebsspannung (5 V)                   |
+| 6       | PB1     | `RELAY_PIN`         | Digital Output (Relais)                        | 
+| 7       | PB2     | `LED_PIN`           | Digital Output (LED) --> schaltet auf Null     |
+| 8       | Vcc     | +                   | Betriebsspannung (5 V)                         |
 
 
 
 # Pinlayout
-                  +---\/---+
-    RESET        –|1      8|– Vcc (5V)
-    KEY_PIN      –|2      7|– LED_PIN
-    UBATTERY_PIN –|3      6|– RELAY_PIN
-    GND          –|4      5|– (unbenutzt / PB4)
-                  +--------+
+                   +---\/---+
+    RESET         –|1      8|– Vcc (5V)
+    UREFERENCE_PIN–|2      7|– LED_PIN
+    UBATTERY_PIN  –|3      6|– RELAY_PIN
+    GND           –|4      5|– KEY_PIN (unbenutzt / PB0)
+                   +--------+
 
     
     #define LED_PIN PB2
     #define RELAY_PIN PB1
     #define KEY_PIN PB0
 
-    #define UBATTTERY_PIN PB3
+    #define UBATTTERY_PIN PB4
+    #define UREFERNCE_PIN PB3
 
 # Spannungsteiler Spannungsmessung 
-    [ 30V ] ── R1 (100kΩ) ──┬──> To ADC pin (PB3, etc.)
+    [ 30V ] ── R1 (100kΩ) ──┬──> To ADC pin (PB4)
                             |
-                    R2 (20kΩ)
+                           R2 (20kΩ)
                             |
-                        GND
+                           GND
 
 Wir nehmen deinen Spannungsteiler:
 
@@ -47,9 +58,9 @@ Die Spannung am ADC-Pin ist:
 
 𝑉out = 22𝑉×(𝑅1/(𝑅1+𝑅2)) = 22𝑉×(20𝑘Ω/120𝑘Ω)= 22𝑉×1/6 ≈ 3.67𝑉
 
-### 🧮 Schritt 2: ADC-Wert berechnen
+### 🧮 Schritt 2: Potentiometer einstellen
+ Auf eine Spannung von 3.67V stellen.
 
-𝐴𝐷𝐶 = (𝑉out/𝑉𝑐𝑐) × 1023 = (3.67/ 5.0)×1023 ≈ 751
 
 
 ### ✅ Antwort:
