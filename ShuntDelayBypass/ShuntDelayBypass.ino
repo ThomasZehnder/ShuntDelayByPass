@@ -43,6 +43,9 @@ void setup() {
 int16_t pulsrateHigh = 200;
 int16_t pulsrateLow = 200;
 
+int vBat = 0;
+int vRef = 0;
+
 // UBAT > UREF (POTI)
 bool fUbatOk(void) {
   analogRead((analog_pin_t)UBATTTERY_PIN); // dummy read
