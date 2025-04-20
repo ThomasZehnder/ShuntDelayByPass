@@ -37,7 +37,7 @@ void setup() {
   // initialize digital pin as an output.
   pinMode(LED_PIN, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW);    // switch relais off, shunt activ
+  analogWrite(RELAY_PIN, 0);  // switch relais off, shunt activ
   pinMode(KEY_PIN, INPUT_PULLUP);  // programmiertaste
   analogReference(DEFAULT);        // Only option on ATtiny13 == 1024 = VCC
 }
@@ -121,7 +121,16 @@ void loop() {
       saveReference(vBat);
     }
 
-  } else {  //Relais geschaltet, anzeigen der Spannung mit Frequenz des Blinkens
+  } else if (state == 3) {  //Realis zieht an, nach einer Sekunde reduzieren auf 50%
+    pulsrateHigh = 250;
+    pulsrateLow = 250;
+    analogWrite(RELAY_PIN, 100);  // switch relais on, shunt is forced off
+    blink(); //-Relais ON Time  Delay
+    analogWrite(RELAY_PIN, 25); //Haltespannung Reduzieren auf 50%
+    state = 4;
+   
+
+} else {  //Relais geschaltet, Anzeigen der Spannung mit Frequenz des Blinkens
 
     // UBAT > UREF (POTI)
     if (fUbatOk()) {
@@ -132,14 +141,14 @@ void loop() {
       pulsrateLow = 50;
     }
 
-    digitalWrite(RELAY_PIN, HIGH);  // switch relais on, shunt is forced off
+    //digitalWrite(RELAY_PIN, HIGH);  // switch relais on, shunt is forced off
 
     blink();
 
     if (digitalRead(KEY_PIN) == LOW) {
       state = 0;
       resetTime = now;  //reset start time
-       digitalWrite(RELAY_PIN, LOW);  // switch relais off
+      analogWrite(RELAY_PIN, 0);  // switch relais off
     }
   }
 }
