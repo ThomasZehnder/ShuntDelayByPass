@@ -22,6 +22,8 @@ Led Ausgang zeig den Status an.
 
 */
 
+#define TESTANALOG
+
 #define LED_PIN PB2
 #define RELAY_PIN PB1
 #define KEY_PIN PB0
@@ -36,27 +38,36 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);  // switch relais off, shunt activ
-  pinMode(KEY_PIN, INPUT_PULLUP);
+  pinMode(KEY_PIN, INPUT_PULLUP); //not used
   analogReference(0);  // Only option on ATtiny13 == 1024 = VCC
 }
 
-int16_t pulsrateHigh = 200;
-int16_t pulsrateLow = 200;
+int16_t pulsrateHigh = 20;
+int16_t pulsrateLow = 20;
 
+//global for debugging
 int vBat = 0;
 int vRef = 0;
 
 // UBAT > UREF (POTI)
 bool fUbatOk(void) {
-  analogRead((analog_pin_t)UBATTTERY_PIN); // dummy read
-  delay(5);                   // stabilisieren
-  int vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
+  analogRead((analog_pin_t)UBATTTERY_PIN);  // dummy read
+  delay(5);                                 // stabilisieren
+  //vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
 
-  analogRead((analog_pin_t)UREFERNCE_PIN); // dummy read
-  delay(5);                   // stabilisieren
-  int vRef = analogRead((analog_pin_t)UREFERNCE_PIN);
+  //analogRead((analog_pin_t)UREFERNCE_PIN);  // dummy read
+  delay(5);  // stabilisieren
+  //vRef = analogRead((analog_pin_t)UREFERNCE_PIN);
 
   return (vBat > vRef);
+}
+
+void blink(void) {
+  //blink led
+  digitalWrite(LED_PIN, HIGH);  // turn the LED on
+  delay(pulsrateHigh);
+  digitalWrite(LED_PIN, LOW);  // turn the LED off
+  delay(pulsrateLow);
 }
 
 
@@ -68,14 +79,9 @@ void loop() {
 
   unsigned long now = micros() / 1000;
 
-  //reset for tests
-  if (digitalRead(KEY_PIN) == 0) {
-    state = 0;
-    digitalWrite(RELAY_PIN, LOW);  // switch relais off, shunt activ
-    resetTime = now;
-  }
 
   if (state == 0) {
+    blink();
     pulsrateHigh = 250;
     pulsrateLow = 250;
     // Wait Time
@@ -83,6 +89,7 @@ void loop() {
       state = 1;
     }
   } else if (state == 1) {
+    blink();
     pulsrateHigh = 100;
     pulsrateLow = 100;
     // UBAT > UREF (POTI)
@@ -93,9 +100,26 @@ void loop() {
     if (now - resetTime > 20000) {
       state = 3;
     }
+    #ifdef TESTANALOG
+    state = 3;
+    #endif
 
   } else {
-    // UBAT > UREF (POTI)
+
+#ifdef TESTANALOG
+    fUbatOk();  //call to messure only
+
+    digitalWrite(LED_PIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+    delay(20 + vBat);
+    digitalWrite(RELAY_PIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+    delay(20 + vRef);
+
+    digitalWrite(LED_PIN, LOW);  // turn the LED off by making the voltage LOW
+
+    digitalWrite(RELAY_PIN, LOW);  // turn the LED off by making the voltage LOW
+    delay(2000);
+
+#else
     // UBAT > UREF (POTI)
     if (fUbatOk()) {
       pulsrateHigh = 1950;
@@ -106,11 +130,8 @@ void loop() {
     }
 
     digitalWrite(RELAY_PIN, HIGH);  // switch relais on, shunt is forced
-  }
 
-  //blink led
-  digitalWrite(LED_PIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  delay(pulsrateHigh);
-  digitalWrite(LED_PIN, LOW);  // turn the LED off by making the voltage LOW
-  delay(pulsrateLow);
+    blink();
+#endif
+  }
 }
