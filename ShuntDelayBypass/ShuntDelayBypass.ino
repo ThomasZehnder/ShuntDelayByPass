@@ -1,72 +1,64 @@
 /*
- Einschalt Verzögerung um Shunt Widerstand zu überbrücken.
+# Funktionsbeschreibung
+ Einschalt Verzögerung um den Shunt Widerstand von 5Ω zu überbrücken.
+ Der Shunt begrenzt den Strom auf ca. 5A
 
- Wird nach 5 Sekunden geschaltet, falls die Spannung über 22V ist, ansonsten nach 10 Sekunden.
+##  ✅ Ablauf
+ * Nache dem Einschalten wird 5 Sekunden geladen. --> langsam blinken 
+ * Danach wird 15 Sekunden lang überprüft, ob die Spannund erreicht wurde. Falls ja, wird der Schunt überbrückt, das Relais zieht an. --> schnelles blinken
+ * Falls nach 15 Sekunden die Spannung nicht erreicht wurde, wird das Relais auch geschaltet. --> Puls mit langer Pause (2s)
 
-Led Ausgang zeig den Status an.
-* 200ms flash Warten auf Spannung
-* 100ms flash Spannung erreicht, Relais geschaltet 5s
-* 200ms ON, 2s OFF Relais geschaltet, spätestens nach 10 Sekunden
+
+## ✅ Programmieren
+Vor dem Einschalten der Batterie  oder während den ersten 5 Sekunden den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespeichert und von dann an als Referenzspannung verwendet. (Bei gedrückter Taste wird das Relais nicht geschaltet. Es blinkt mit kurzen "Blitzen")
 
 */
 
 /*
-[ 30V ] ── R1 (100kΩ) ──┬──> To ADC pin (PB3)
-                        |
-                   R2 (20kΩ)
-                        |
-                      GND
-
- 22V --> 750
-
+    [ 30V ] ── R1 (100kΩ) ──┬──> To ADC pin (PB4)
+                            |
+                           R2 (20kΩ)
+                            |
+                           GND
 
 */
-
-#define TESTANALOG
 
 #define LED_PIN PB2
 #define RELAY_PIN PB1
 #define KEY_PIN PB0
 
-#define UBATTTERY_PIN PB4
-#define UREFERNCE_PIN PB3
-
+#define UBATTTERY_PIN PB3
 
 // the setup function runs once when you press reset or power the board
 void setup() {
   // initialize digital pin as an output.
   pinMode(LED_PIN, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW);  // switch relais off, shunt activ
-  pinMode(KEY_PIN, INPUT_PULLUP); //not used
-  analogReference(0);  // Only option on ATtiny13 == 1024 = VCC
+  digitalWrite(RELAY_PIN, LOW);    // switch relais off, shunt activ
+  pinMode(KEY_PIN, INPUT_PULLUP);  // programmiertaste
+  analogReference(DEFAULT);        // Only option on ATtiny13 == 1024 = VCC
 }
 
 int16_t pulsrateHigh = 20;
 int16_t pulsrateLow = 20;
 
-//global for debugging
+//global defined
 int vBat = 0;
-int vRef = 0;
+int vRef = 700;
 
 // UBAT > UREF (POTI)
 bool fUbatOk(void) {
-  analogRead((analog_pin_t)UBATTTERY_PIN);  // dummy read
-  delay(5);                                 // stabilisieren
-  //vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
-
-  //analogRead((analog_pin_t)UREFERNCE_PIN);  // dummy read
-  delay(5);  // stabilisieren
-  //vRef = analogRead((analog_pin_t)UREFERNCE_PIN);
-
+  vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
   return (vBat > vRef);
 }
 
+#define POLARITY_LED 1
+
 void blink(void) {
   //blink led
-  digitalWrite(LED_PIN, HIGH);  // turn the LED on
+  digitalWrite(LED_PIN, HIGH ^ POLARITY_LED);  // turn the LED on
   delay(pulsrateHigh);
-  digitalWrite(LED_PIN, LOW);  // turn the LED off
+  digitalWrite(LED_PIN, LOW ^ POLARITY_LED);  // turn the LED off
   delay(pulsrateLow);
 }
 
@@ -77,49 +69,45 @@ unsigned long resetTime = 0;
 // the loop function runs over and over again forever
 void loop() {
 
-  unsigned long now = micros() / 1000;
+  unsigned long now = (micros() / 1000) - resetTime;
 
-
-  if (state == 0) {
-    blink();
+  if (state == 0) {  //Warten auf Zeit oder "Programmierttaste"
     pulsrateHigh = 250;
     pulsrateLow = 250;
+    blink();
     // Wait Time
-    if (now - resetTime > 5000) {
+    if (now > 5000) {
       state = 1;
     }
-  } else if (state == 1) {
-    blink();
+    if (digitalRead(KEY_PIN) == LOW) {
+      state = 2;
+    }
+
+  } else if (state == 1) {  //Warten auf Zeit oder Spannung
     pulsrateHigh = 100;
     pulsrateLow = 100;
+    blink();
     // UBAT > UREF (POTI)
     if (fUbatOk()) {
       state = 3;
     }
     // Wait Time
-    if (now - resetTime > 20000) {
+    if (now > 20000) {
       state = 3;
     }
-    #ifdef TESTANALOG
-    state = 3;
-    #endif
 
-  } else {
+  } else if (state == 2) {  //Warten auf loslassen der Programmiertaste
+    pulsrateHigh = 200;
+    pulsrateLow = 50;
+    blink();
 
-#ifdef TESTANALOG
-    fUbatOk();  //call to messure only
+    if (digitalRead(KEY_PIN) == HIGH) {
+      state = 0;
+      resetTime = now;  //reset start time
+    }
 
-    digitalWrite(LED_PIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-    delay(20 + vBat);
-    digitalWrite(RELAY_PIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-    delay(20 + vRef);
+  } else {  //Relais geschaltet, anzeigen der Spannung mit Frequenz des Blinkens
 
-    digitalWrite(LED_PIN, LOW);  // turn the LED off by making the voltage LOW
-
-    digitalWrite(RELAY_PIN, LOW);  // turn the LED off by making the voltage LOW
-    delay(2000);
-
-#else
     // UBAT > UREF (POTI)
     if (fUbatOk()) {
       pulsrateHigh = 1950;
@@ -129,9 +117,14 @@ void loop() {
       pulsrateLow = 50;
     }
 
-    digitalWrite(RELAY_PIN, HIGH);  // switch relais on, shunt is forced
+    digitalWrite(RELAY_PIN, HIGH);  // switch relais on, shunt is forced off
 
     blink();
-#endif
+
+    if (digitalRead(KEY_PIN) == LOW) {
+      state = 0;
+      resetTime = now;  //reset start time
+       digitalWrite(RELAY_PIN, LOW);  // switch relais off
+    }
   }
 }
