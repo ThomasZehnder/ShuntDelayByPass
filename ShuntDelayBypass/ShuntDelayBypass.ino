@@ -23,6 +23,9 @@ Vor dem Einschalten der Batterie  oder während den ersten 5 Sekunden den Schalt
 
 */
 
+#include <EEPROM.h>
+
+
 #define LED_PIN PB2
 #define RELAY_PIN PB1
 #define KEY_PIN PB0
@@ -43,8 +46,8 @@ int16_t pulsrateHigh = 20;
 int16_t pulsrateLow = 20;
 
 //global defined
-int vBat = 0;
-int vRef = 700;
+uint16_t vBat = 0;
+uint16_t vRef = 700;
 
 // UBAT > UREF (POTI)
 bool fUbatOk(void) {
@@ -52,7 +55,7 @@ bool fUbatOk(void) {
   return (vBat > vRef);
 }
 
-#define POLARITY_LED 1
+#define POLARITY_LED 0
 
 void blink(void) {
   //blink led
@@ -62,6 +65,14 @@ void blink(void) {
   delay(pulsrateLow);
 }
 
+void saveReference(uint16_t value) {
+  EEPROM.write(0, lowByte(value));
+  EEPROM.write(1, highByte(value));
+}
+
+uint16_t loadReference() {
+  return ((uint16_t)EEPROM.read(1) << 8) | EEPROM.read(0);
+}
 
 byte state = 0;
 unsigned long resetTime = 0;
@@ -78,6 +89,7 @@ void loop() {
     // Wait Time
     if (now > 5000) {
       state = 1;
+      vRef = loadReference();
     }
     if (digitalRead(KEY_PIN) == LOW) {
       state = 2;
@@ -104,6 +116,9 @@ void loop() {
     if (digitalRead(KEY_PIN) == HIGH) {
       state = 0;
       resetTime = now;  //reset start time
+
+      //flash voltage as new reference
+      saveReference(vBat);
     }
 
   } else {  //Relais geschaltet, anzeigen der Spannung mit Frequenz des Blinkens
