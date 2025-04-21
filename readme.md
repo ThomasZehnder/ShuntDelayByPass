@@ -7,11 +7,14 @@
  * Danach wird 15 Sekunden lang überprüft, ob die Spannund erreicht wurde. Falls ja, wird der Schunt überbrückt, das Relais zieht an. --> schnelles blinken mit 200ms Periode.
  * Falls nach 15 Sekunden die Spannung nicht erreicht wurde, wird das Relais auch geschaltet. 
  * Falls die Spannung unter der Referenzspannung liegt blinkt die LED mit 500ms Perione, sonst mit 2s.
- * Die Realisspannung wird nach einer Sekunde auf 25% Haltespannung  gesenkt werden.
+ * Die Realisspannung wird nach 500ms auf 25% Haltespannung  gesenkt werden.
 
 
 ## ✅ Programmieren der Referenzspannung
-Vor dem Einschalten der Batterie  oder während den ersten 5 Sekunden den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespeichert und von dann an als Referenzspannung verwendet. (Bei gedrückter Taste wird das Relais nicht geschaltet. Es blinkt mit kurzen "Blitzen")
+Den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespeichert und von dann an als Referenzspannung verwendet. (Bei gedrückter Taste wird das Relais nicht geschaltet. Es blinkt schnell. )
+
+# Print
+<img src="20250421_print.jpg" alt="print" width="25%" >
 
 # 🧷 ATtiny13 Pinbelegung
 
