@@ -41,7 +41,7 @@ void setup() {
   // initialize digital pin as an output.
   pinMode(LED_PIN, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
-  analogWrite(RELAY_PIN, 0);  // switch relais off, shunt activ
+  digitalWrite(RELAY_PIN, LOW);  // switch relais off, shunt activ
   pinMode(KEY_PIN, INPUT_PULLUP);  // programmiertaste
   analogReference(DEFAULT);        // Only option on ATtiny13 == 1024 = VCC
 }
@@ -59,6 +59,7 @@ bool fUbatOk(void) {
   return (vBat > vRef);
 }
 
+//used for debugging built in led works inverse :-9
 #define POLARITY_LED 0
 
 void blink(void) {
@@ -128,9 +129,9 @@ void loop() {
   } else if (state == 3) {  //Realis zieht an, nach einer Sekunde reduzieren auf 50%
     pulsrateHigh = 250;
     pulsrateLow = 250;
-    analogWrite(RELAY_PIN, 100);  // switch relais on, shunt is forced off
+    analogWrite(RELAY_PIN, 255);  // switch relais on, shunt is forced off
     blink(); //-Relais ON Time  Delay
-    analogWrite(RELAY_PIN, 25); //Haltespannung Reduzieren auf 50%
+    analogWrite(RELAY_PIN, 128); //Haltespannung Reduzieren auf 50% = 128 auf der sicheren seite  (75 von 255 = 3.5V für 12V Relais reicht nicht)
     state = 4;
    
 
@@ -152,7 +153,7 @@ void loop() {
     if (digitalRead(KEY_PIN) == LOW) {
       state = 0;
       resetTime = now;  //reset start time
-      analogWrite(RELAY_PIN, 0);  // switch relais off
+      analogWrite(RELAY_PIN, 0);   // switch relais off
     }
   }
 }

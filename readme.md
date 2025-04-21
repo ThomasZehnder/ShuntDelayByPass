@@ -10,11 +10,15 @@
  * Die Realisspannung wird nach 500ms auf 25% Haltespannung  gesenkt werden.
 
 
-## ✅ Programmieren der Referenzspannung
+## 💡  Programmieren der Referenzspannung
 Den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespeichert und von dann an als Referenzspannung verwendet. (Bei gedrückter Taste wird das Relais nicht geschaltet. Es blinkt schnell. )
 
-# Print
+# 🧠 Print
 <img src="20250421_print.jpg" alt="print" width="25%" >
+
+4Ω reduziert den Anlaufstrom auf 6A.
+Die Last bei Leerlauf des DC/AC Wandles beträgt ca. 1 Ampere. DAdurch sollte die spannung bis ca. 26V-(4Ω*1A) = 22V Ansteigen.
+
 
 # 🧷 ATtiny13 Pinbelegung
 
@@ -32,7 +36,7 @@ Den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespe
 https://components101.com/microcontrollers/attiny13-8-bit-avr-microcontroller 
 
 
-# Pinlayout
+# 🧩Pinlayout
                    +---\/---+
     RESET         –|1      8|– Vcc (5V)
     UBATTERY_PIN  -|2      7|– LED_PIN
@@ -47,7 +51,7 @@ https://components101.com/microcontrollers/attiny13-8-bit-avr-microcontroller
 
     #define UBATTTERY_PIN PB3
 
-# Spannungsteiler Spannungsmessung 
+# 📌Spannungsteiler Spannungsmessung 
     [ 30V ] ── R1 (100kΩ) ──┬──────────┬─
                             |          |
                            R2 (20kΩ)   Poti 200kΩ ──> To ADC pin 2 (PB3)
