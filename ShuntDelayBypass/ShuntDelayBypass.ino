@@ -1,4 +1,7 @@
 /*
+Git HUB Repo
+https://github.com/ThomasZehnder/ShuntDelayByPass
+
 # Funktionsbeschreibung
  Einschalt Verzögerung um den Shunt Widerstand von 5Ω zu überbrücken.
  Der Shunt begrenzt den Strom auf ca. 5A
