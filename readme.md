@@ -98,7 +98,7 @@ Auf eine Spannung von 3.0V stellen, dies bei einer Eingangsspannung von 24V
 - **Source**: Direkt mit **GND** verbunden  
 
 # Freilaufdione nicht vergessen.
-Das Relais am Ausgang der FETs. Diode antiparralle zum Relais
+Das Relais am Ausgang der FETs. Diode antiparralle zum Relais.
 
 # Learning
 Leider konnten nicht zwei Analog-Signale einzulesen. Nur Pin 2 = ADC3 / PB3 funktionierte tadellos.
