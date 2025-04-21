@@ -7,7 +7,7 @@
  * Danach wird 15 Sekunden lang überprüft, ob die Spannund erreicht wurde. Falls ja, wird der Schunt überbrückt, das Relais zieht an. --> schnelles blinken mit 200ms Periode.
  * Falls nach 15 Sekunden die Spannung nicht erreicht wurde, wird das Relais auch geschaltet. 
  * Falls die Spannung unter der Referenzspannung liegt blinkt die LED mit 500ms Perione, sonst mit 2s.
- * Die Realisspannung wird nach 500ms auf 25% Haltespannung  gesenkt werden.
+ * Die Relaisspannung wird nach 500ms auf 50% Haltespannung  gesenkt werden.
 
 
 ## 💡  Programmieren der Referenzspannung
