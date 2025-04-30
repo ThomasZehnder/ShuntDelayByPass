@@ -46,9 +46,6 @@ void setup()
   analogReference(DEFAULT);       // Only option on ATtiny13 == 1024 = VCC
 }
 
-int16_t pulsrateHigh = 20;
-int16_t pulsrateLow = 20;
-
 // global defined
 uint16_t vBat = 0;
 uint16_t vRef = 700;
@@ -69,7 +66,7 @@ bool fUbatLow(void)
 // used for debugging built in led works inverse :-9
 #define POLARITY_LED 0
 
-void blink(void)
+void blink(int16_t pulsrateHigh, int16_t pulsrateLow)
 {
   // blink led
   digitalWrite(LED_PIN, HIGH ^ POLARITY_LED); // turn the LED on
@@ -109,9 +106,7 @@ void loop()
 
   if (state == 0)
   { // Warten auf Zeit oder "Programmierttaste"
-    pulsrateHigh = 250;
-    pulsrateLow = 250;
-    blink();
+    blink(250, 250);
     // Wait Time
     if (getNow() > 5000)
     {
@@ -125,9 +120,7 @@ void loop()
   }
   else if (state == 1)
   { // Warten auf Zeit oder Spannung
-    pulsrateHigh = 100;
-    pulsrateLow = 100;
-    blink();
+    blink(100, 100);
     // UBAT > UREF (POTI)
     if (fUbatOk())
     {
@@ -141,9 +134,7 @@ void loop()
   }
   else if (state == 2)
   { // Warten auf loslassen der Programmiertaste
-    pulsrateHigh = 200;
-    pulsrateLow = 50;
-    blink();
+    blink(200, 50);
 
     if (digitalRead(KEY_PIN) == HIGH)
     {
@@ -155,11 +146,9 @@ void loop()
     }
   }
   else if (state == 3)
-  { // Realay zieht an, nach einer 500ms reduzieren auf 50%
-    pulsrateHigh = 250;
-    pulsrateLow = 250;
+  {                              // Realay zieht an, nach einer 500ms reduzieren auf 50%
     analogWrite(RELAY_PIN, 255); // switch relais on, shunt is forced off
-    blink();                     // blink sequens for -Relais ON Time  Delay
+    blink(250, 250);             // blink sequens for -Relais ON Time  Delay
     analogWrite(RELAY_PIN, 128); // Haltespannung Reduzieren auf 50% = 128 auf der sicheren seite  (75 von 255 = 3.5V für 12V Relais reicht nicht)
     state = 4;
   }
@@ -169,16 +158,12 @@ void loop()
     // UBAT > UREF (POTI & Programmiert)
     if (fUbatOk())
     {
-      pulsrateHigh = 1950;
-      pulsrateLow = 50;
+      blink(1950, 50);
     }
     else
     {
-      pulsrateHigh = 450;
-      pulsrateLow = 50;
+      blink(450, 50);
     }
-
-    blink();
 
     // Spannung Programmieren oder Unterspannung
     if ((digitalRead(KEY_PIN) == LOW) || (fUbatLow()))
