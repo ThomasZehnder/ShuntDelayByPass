@@ -149,7 +149,7 @@ void loop()
   {                              // Realay zieht an, nach einer 500ms reduzieren auf 50%
     analogWrite(RELAY_PIN, 255); // switch relais on, shunt is forced off
     blink(250, 250);             // blink sequens for -Relais ON Time  Delay
-    analogWrite(RELAY_PIN, 128); // Haltespannung Reduzieren auf 50% = 128 auf der sicheren seite  (75 von 255 = 3.5V für 12V Relais reicht nicht)
+    analogWrite(RELAY_PIN, 128); // Haltespannung Reduzieren auf 50% = 128 auf der sicheren Seite  (75 von 255 = 3.5V für 12V Relais reicht nicht, mit 50% zieht das Relais aber auch nicht mehr an, und es prifft leicht mit der PWM Frequenz)
     state = 4;
   }
   else
