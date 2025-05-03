@@ -1,6 +1,6 @@
 # Funktionsbeschreibung
  Einschalt Verzögerung um den Shunt Widerstand von 4Ω zu überbrücken.
- Der Shunt begrenzt den Strom auf ca. 5A
+ Der Shunt begrenzt den Einschalt-Strom auf ca. 6A
 
 ##  ✅ Ablauf
 ### Laden
@@ -27,7 +27,7 @@ Die abgespeicherte Referenzspannung entspricht 90% der gemessenen Spannung.
 <img src="20250421_print.jpg" alt="print" width="25%" >
 
 4Ω reduziert den Anlaufstrom auf 6A.
-Die Last bei Leerlauf des DC/AC Wandles beträgt ca. 1 Ampere. DAdurch sollte die spannung bis ca. 26V-(4Ω*1A) = 22V Ansteigen.
+Die Last bei Leerlauf des DC/AC Wandles beträgt ca. 1 Ampere. Dadurch sollte die Spannung bis ca. 26V-(4Ω*1A) = 22V ansteigen.
 
 
 # 🧷 ATtiny13 Pinbelegung
