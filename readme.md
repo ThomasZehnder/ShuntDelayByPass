@@ -108,9 +108,14 @@ Auf eine Spannung von 3.0V stellen, dies bei einer Eingangsspannung von 24V
 - **Source**: Direkt mit **GND** verbunden  
 
 # Freilaufdione nicht vergessen.
-Das Relais am Ausgang der FETs. Diode antiparralle zum Relais.
+Das Relais am Ausgang der FETs. Diode antiparalle zum Relais.
 
 # Learning
 Leider konnten nicht zwei Analog-Signale einzulesen. Nur Pin 2 = ADC3 / PB3 funktionierte tadellos.
-Desshalb wurde intern eine Spannungsreferenz verwendet, welche mit dem Taster programmierbar ist. Mit dem 200kΩ Poti kann die Schwelle erhöht werden.
+
+Desshalb wurde intern eine Spannungsreferenz verwendet, welche mit dem Taster programmierbar ist. 
+
+(Unnötig) Mit dem 200kΩ Poti kann die Schwelle angepasst werden. 
+
+
 
