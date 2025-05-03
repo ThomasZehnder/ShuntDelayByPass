@@ -1,17 +1,27 @@
 # Funktionsbeschreibung
- Einschalt Verzögerung um den Shunt Widerstand von 5Ω zu überbrücken.
+ Einschalt Verzögerung um den Shunt Widerstand von 4Ω zu überbrücken.
  Der Shunt begrenzt den Strom auf ca. 5A
 
 ##  ✅ Ablauf
- * Nache dem Einschalten wird 5 Sekunden geladen. --> langsam blinken 
- * Danach wird 15 Sekunden lang überprüft, ob die Spannund erreicht wurde. Falls ja, wird der Schunt überbrückt, das Relais zieht an. --> schnelles blinken mit 200ms Periode.
- * Falls nach 15 Sekunden die Spannung nicht erreicht wurde, wird das Relais auch geschaltet. 
+### Laden
+ * Nache dem Einschalten wird 1 Sekunden geladen. 
+ * --> langsam blinken (500ms)
+### Warten auf Spannung 
+ * Danach wird 3 Sekunden lang überprüft, ob die Spannund erreicht wurde. Falls ja, wird der Shunt überbrückt, das Relais zieht an. 
+ * --> schnelles blinken mit 200ms Periode.
+### Relais einschalten
+* Die Relaisspannung wird nach 500ms auf 50% Haltespannung  gesenkt werden.
+### Relai auf Haltespannung
  * Falls die Spannung unter der Referenzspannung liegt blinkt die LED mit 500ms Perione, sonst mit 2s.
- * Die Relaisspannung wird nach 500ms auf 50% Haltespannung  gesenkt werden.
+ * Falls die Spannung auf unter 80% der Haltespannung fällt, wird wieder versucht das Relais voll einzuschalten.
 
 
 ## 💡  Programmieren der Referenzspannung
-Den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespeichert und von dann an als Referenzspannung verwendet. (Bei gedrückter Taste wird das Relais nicht geschaltet. Es blinkt schnell. )
+Den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespeichert und von dann an als Referenzspannung verwendet. 
+
+Die abgespeicherte Referenzspannung entspricht 90% der gemessenen Spannung.
+
+(Bei gedrückter Taste wird das Relais ausschaltet. Es blinkt schnell. )
 
 # 🧠 Print
 <img src="20250421_print.jpg" alt="print" width="25%" >

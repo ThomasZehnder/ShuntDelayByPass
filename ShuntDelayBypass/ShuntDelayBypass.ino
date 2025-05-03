@@ -3,22 +3,34 @@ Git HUB Repo
 https://github.com/ThomasZehnder/ShuntDelayByPass
 
 # Funktionsbeschreibung
- Einschalt Verzögerung um den Shunt Widerstand von 5Ω zu überbrücken.
- Der Shunt begrenzt den Strom auf ca. 5A
+ Einschalt Verzögerung um den Shunt Widerstand von 4Ω zu überbrücken.
+ Der Shunt begrenzt den Strom auf ca. 8A bei 24V
 
 ##  ✅ Ablauf
- * Nache dem Einschalten wird 5 Sekunden geladen. --> langsam blinken
- * Danach wird 15 Sekunden lang überprüft, ob die Spannund erreicht wurde. Falls ja, wird der Schunt überbrückt, das Relais zieht an. --> schnelles blinken mit 200ms Periode.
- * Falls nach 15 Sekunden die Spannung nicht erreicht wurde, wird das Relais auch geschaltet.
+### Laden
+ * Nache dem Einschalten wird 1 Sekunden geladen. --> langsam blinken
+### Warten auf Spannung
+ * Danach wird 3 Sekunden lang überprüft, ob die Spannund erreicht wurde. Falls ja, wird der Schunt überbrückt, das Relais zieht an. --> schnelles blinken mit 200ms Periode.
+ * Falls nach 3 Sekunden die Spannung nicht erreicht wurde, wird das Relais auch geschaltet.
+### Relais ein
+* Die Relaisspannung wird nach 500ms auf 50% Haltespannung  gesenkt werden.
+### Relai auf Haltespannung
  * Falls die Spannung unter der Referenzspannung liegt blinkt die LED mit 500ms Perione, sonst mit 2s.
- * Die Relaisspannung wird nach 500ms auf 50% Haltespannung gesenkt werden.
+ * Falls die Spannung auf unter 80% der Haltespannung fällt, wird wieder versucht das Relais voll einzuschalten.
 
 
-## ✅ Programmieren der Referenzspannung
-Den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespeichert und von dann an als Referenzspannung verwendet. (Bei gedrückter Taste wird das Relais nicht geschaltet. Es blinkt schnell. )
+## 💡  Programmieren der Referenzspannung
+Den Schalter betätigen. Beim Loslassen wird die gemessene Spannung intern gespeichert und von dann an als Referenzspannung verwendet.
+
+Die abgespeicherte Referenzspannung entspricht 90% der gemessenen Spannung.
+
+(Bei gedrückter Taste wird das Relais ausschaltet. Es blinkt schnell. )
+
 */
 
 /*
+Spannungsteiler
+
     [ 30V ] ── R1 (100kΩ) ──┬──> To ADC pin (PB4)
                             |
                            R2 (20kΩ)
@@ -46,6 +58,11 @@ void setup()
   analogReference(DEFAULT);       // Only option on ATtiny13 == 1024 = VCC
 }
 
+uint16_t scaleInt16Percent(uint16_t val, uint16_t factor)
+{
+  return (uint16_t)((uint32_t)val * factor / 100);
+}
+
 // global defined
 uint16_t vBat = 0;
 uint16_t vRef = 700;
@@ -60,10 +77,16 @@ bool fUbatOk(void)
 bool fUbatLow(void)
 {
   vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
-  return (vBat < vRef / 2);
+  return (vBat < scaleInt16Percent(vRef, 50));
 }
 
-// used for debugging built in led works inverse :-9
+bool fUbatCritical(void)
+{
+  vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
+  return (vBat < scaleInt16Percent(vRef, 88)); // 80% = 90% * 88%, weil vRef bereits um 90% reduziert wurde
+}
+
+// used for debugging built in led works inverse :-)
 #define POLARITY_LED 0
 
 void blink(int16_t pulsrateHigh, int16_t pulsrateLow)
@@ -108,7 +131,7 @@ void loop()
   { // Warten auf Zeit oder "Programmierttaste"
     blink(250, 250);
     // Wait Time
-    if (getNow() > 5000)
+    if (getNow() > 1000)
     {
       state = 1;
       vRef = loadReference();
@@ -127,7 +150,7 @@ void loop()
       state = 3;
     }
     // Wait Time
-    if (getNow() > 10000)
+    if (getNow() > 3000)
     {
       state = 3;
     }
@@ -142,7 +165,7 @@ void loop()
       // call function to get aktual vBat
       fUbatOk();
       // flash voltage as new reference
-      saveReference(vBat);
+      saveReference(scaleInt16Percent(vBat, 90)); // save limit on 90% of messured value
     }
   }
   else if (state == 3)
@@ -170,6 +193,12 @@ void loop()
     {
       resetStateMachine();
       analogWrite(RELAY_PIN, 0); // switch relais off
+    }
+
+    // Haltespannung kritisch, Relais voll einschalten
+    if (fUbatCritical())
+    {
+      state = 3;
     }
   }
 }
