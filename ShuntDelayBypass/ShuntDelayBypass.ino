@@ -47,6 +47,9 @@ Spannungsteiler
 
 #define UBATTTERY_PIN PB3
 
+//define USE_PWM for RElais, to reduce powerconsumtion
+//#define USE_PWM
+
 // the setup function runs once when you press reset or power the board
 void setup()
 {
@@ -74,16 +77,16 @@ bool fUbatOk(void)
   return (vBat > vRef);
 }
 
-bool fUbatLow(void)
-{
-  vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
-  return (vBat < scaleInt16Percent(vRef, 50));
-}
-
 bool fUbatCritical(void)
 {
   vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
   return (vBat < scaleInt16Percent(vRef, 88)); // 80% = 90% * 88%, weil vRef bereits um 90% reduziert wurde
+}
+
+bool fUbatRestart(void)
+{
+  vBat = analogRead((analog_pin_t)UBATTTERY_PIN);
+  return (vBat < scaleInt16Percent(vRef, 50)); 
 }
 
 // used for debugging built in led works inverse :-)
@@ -172,7 +175,9 @@ void loop()
   {                              // Realay zieht an, nach einer 500ms reduzieren auf 50%
     analogWrite(RELAY_PIN, 255); // switch relais on, shunt is forced off
     blink(250, 250);             // blink sequens for -Relais ON Time  Delay
+    #ifdef USE_PWM
     analogWrite(RELAY_PIN, 128); // Haltespannung Reduzieren auf 50% = 128 auf der sicheren Seite  (75 von 255 = 3.5V für 12V Relais reicht nicht, mit 50% zieht das Relais aber auch nicht mehr an, und es prifft leicht mit der PWM Frequenz)
+    #endif
     state = 4;
   }
   else
@@ -189,7 +194,7 @@ void loop()
     }
 
     // Spannung Programmieren oder Unterspannung
-    if ((digitalRead(KEY_PIN) == LOW) || (fUbatLow()))
+    if ((digitalRead(KEY_PIN) == LOW) || (fUbatRestart()))
     {
       resetStateMachine();
       analogWrite(RELAY_PIN, 0); // switch relais off
